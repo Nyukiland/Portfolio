@@ -1,3 +1,6 @@
+// Globals
+window.isInteractionPaused = false;
+
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d', { alpha: false }); 
 
@@ -9,6 +12,7 @@ let globalTime = 0;
 let globalGlitch = 0;
 let resizeTimeout;
 
+// Window Resize
 function resize()
 {
     const dpr = window.devicePixelRatio || 1;
@@ -29,7 +33,7 @@ function resize()
 
 window.addEventListener('resize', resize);
 
-// Mouse Event
+// Mouse Events
 function updateMouse(x, y, active)
 {
     mouse.x = x;
@@ -60,10 +64,15 @@ window.addEventListener('touchend', () =>
     updateMouse(-1000, -1000, false);
 });
 
-// Clic action
+// Click Action
 window.addEventListener('mousedown', (e) =>
 {
-    if (e.target.tagName !== 'A' && e.target.tagName !== 'VIDEO') 
+    if (window.isInteractionPaused)
+    {
+        return;
+    }
+
+    if (e.target.tagName !== 'A' && e.target.tagName !== 'VIDEO' && e.target.tagName !== 'IMG') 
     {
         globalGlitch = 0.5; 
     }
@@ -71,13 +80,18 @@ window.addEventListener('mousedown', (e) =>
 
 window.addEventListener('touchstart', (e) => 
 {
-    if (e.touches.length > 0 && e.target.tagName !== 'A' && e.target.tagName !== 'VIDEO') 
+    if (window.isInteractionPaused)
+    {
+        return;
+    }
+
+    if (e.touches.length > 0 && e.target.tagName !== 'A' && e.target.tagName !== 'VIDEO' && e.target.tagName !== 'IMG') 
     {
         globalGlitch = 0.5;
     }
 });
 
-// Actual Func and Class
+// Particle Class
 class Particle
 {
     constructor(id, layerZ)
@@ -118,14 +132,26 @@ class Particle
         this.x += this.vx;
         this.y += this.vy;
 
-        if (this.x < -this.baseRadius) this.x = width + this.baseRadius;
-        if (this.x > width + this.baseRadius) this.x = -this.baseRadius;
-        if (this.y < -this.baseRadius) this.y = height + this.baseRadius;
-        if (this.y > height + this.baseRadius) this.y = -this.baseRadius;
+        if (this.x < -this.baseRadius)
+        {
+            this.x = width + this.baseRadius;
+        }
+        if (this.x > width + this.baseRadius)
+        {
+            this.x = -this.baseRadius;
+        }
+        if (this.y < -this.baseRadius)
+        {
+            this.y = height + this.baseRadius;
+        }
+        if (this.y > height + this.baseRadius)
+        {
+            this.y = -this.baseRadius;
+        }
 
         let distFactor = 1.0;
 
-        if (mouse.isActive)
+        if (mouse.isActive && !window.isInteractionPaused)
         {
             const dx = mouse.x - this.x;
             const dy = mouse.y - this.y;
@@ -152,23 +178,24 @@ class Particle
 
     draw()
     {
-        if (globalGlitch > 0)
+        if (globalGlitch > 0 && !window.isInteractionPaused)
         {
             ctx.globalCompositeOperation = 'lighter';
+            ctx.lineWidth = 1 + (4 * globalGlitch); 
             
             const cx = this.x + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
             const cy = this.y + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
             ctx.beginPath();
             ctx.arc(cx, cy, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(0, 255, 255, ${globalGlitch * 0.8})`;
-            ctx.fill();
+            ctx.strokeStyle = `rgba(0, 255, 255, ${globalGlitch * 0.9})`;
+            ctx.stroke();
 
             const mx = this.x + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
             const my = this.y + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
             ctx.beginPath();
             ctx.arc(mx, my, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 0, 100, ${globalGlitch * 0.8})`;
-            ctx.fill();
+            ctx.strokeStyle = `rgba(255, 0, 100, ${globalGlitch * 0.9})`;
+            ctx.stroke();
             
             ctx.globalCompositeOperation = 'source-over';
         }
@@ -188,7 +215,7 @@ class Particle
     }
 }
 
-// Particle Creation
+// Particle Generation
 const particles = [];
 const layerCounts = [200, 100, 60, 40, 25, 10]; 
 
@@ -208,7 +235,7 @@ function initParticles()
     particles.sort((a, b) => a.z - b.z);
 }
 
-// Main Func
+// Main Loop
 function animate()
 {
     globalTime += 0.04;
@@ -222,7 +249,7 @@ function animate()
     ctx.fillRect(0, 0, width, height);
 
     ctx.save();
-    if (globalGlitch > 0)
+    if (globalGlitch > 0 && !window.isInteractionPaused)
     {
         const shakeX = (Math.random() - 0.5) * 30 * globalGlitch;
         const shakeY = (Math.random() - 0.5) * 30 * globalGlitch;

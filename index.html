@@ -1,38 +1,129 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio - Programmeur</title>
+    <title>Portfolio | Game Programmer</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <canvas id="bg-canvas"></canvas>
-    
-    <main class="content">
-        <header>
-            <h1>Mon Profil</h1>
-            <p>Programmeur Jeu Vidéo | C++ / C# | Optimisation & Systèmes Complexes</p>
+
+    <main class="ui-layer">
+        <header class="hero">
+            <h1>Roman Guerin</h1>
+            <h2>Game Programmer & System Tinkerer</h2>
+            
+            <div class="tags-container">
+                <span class="skill-badge">C++</span>
+                <span class="skill-badge">C#</span>
+                <span class="skill-badge">Unreal Engine</span>
+                <span class="skill-badge">Unity</span>
+            </div>
+            
+            <p class="pitch">
+                I am driven by a simple goal: understanding how games and computer at low levels, behind the scenes. I love taking systems apart and rebuilding them from scratch to master their mechanics. What I might lack in industry experience, I make up for with versatile thinking and a fast learning curve. I embrace hard technical challenges and I am always ready to prototype new solutions.
+            </p>
         </header>
 
-        <section id="projects">
-            <article class="project" onclick="toggleProject(this)">
-                <h2>Moteur Physique Custom (C++)</h2>
-                <div class="project-details">
-                    <p>Développement d'un solver de contraintes basé sur l'algorithme de Gauss-Seidel.</p>
+        <section class="projects-grid">
+            
+            <article class="project-card" data-video="assets/fluid_sim.mp4" onclick="openModal(this)">
+                <div class="card-content">
+                    <span class="tech-tag">C++ / Compute Shaders</span>
+                    <h3>Fluid & Particle Simulation</h3>
+                    <p>High-performance physics solver for fluid dynamics, built from scratch to study core simulation mechanics.</p>
+                </div>
+                <div class="hidden-details" style="display: none;">
+                    <p>Developed a custom particle engine designed for scalability and deep understanding of physics programming. Made as a school project, I went beyond and built a fluid simulation and optimised it. The system adapts its execution based on particle count requirements.</p>
+                    <ul>
+                        <li>Inside Unreal but using native C++.</li>
+                        <li>Implemented spatial simulation algorithms for fluid behaviors.</li>
+                        <li>Dynamic scaling utilizing GPU optimizations including Compute Shaders and GPU Instancing/Batching for massive particle counts.</li>
+                        <li>Focused on memory alignment and data-locality to ensure high-performance rendering.</li>
+                    </ul>
                 </div>
             </article>
 
-            <article class="project" onclick="toggleProject(this)">
-                <h2>Générateur Procédural (Unity / C#)</h2>
-                <div class="project-details">
-                    <p>Système de génération utilisant le Wave Function Collapse.</p>
+            <article class="project-card" data-video="assets/procedural_flowers.mp4" onclick="openModal(this)">
+                <div class="card-content">
+                    <span class="tech-tag">Research / Algorithms</span>
+                    <h3>Procedural Flower Evolution</h3>
+                    <p>Research thesis: Procedural generation and adaptation of flower using interactive genetic algorithms.</p>
+                </div>
+                <div class="hidden-details" style="display: none;">
+                    <p>An exploratory system evaluating how procedural 3D plant models can mutate and adapt. While the thesis focuses on small-scale individual flora, the ultimate architectural goal is full biome generation.</p>
+                    <ul>
+                        <li>Implemented an Interactive Evolutionary Computation approach where the user acts as the fitness function to guide plant mutation.</li>
+                        <li>Explored Crossover and Procedural Mutation algorithms to create organic variations.</li>
+                        <li>Studied state-of-the-art scientific papers on algorithmic plant growth.</li>
+                    </ul>
                 </div>
             </article>
+
+            <article class="project-card" data-video="assets/storygami.mp4" onclick="openModal(this)">
+                <div class="card-content">
+                    <span class="tech-tag">C# / Unity</span>
+                    <h3>Storygami</h3>
+                    <p>Puzzle game featuring a state-recording system and "time-manipulation" of clones.</p>
+                </div>
+                <div class="hidden-details" style="display: none;">
+                    <p>A puzzle game presented in an isometric view, featuring the unique aspect that allows players to create clones to solve each room. However, the player requires time to generate these clones, and their time is limited.</p>
+                    <p>Architected a system for a 3rd-year student project, focusing heavily on performance constraints and data management.</p>
+                    <ul>
+                        <li>Developed a Time Record/Playback system saving velocities and player actions.</li>
+                        <li>Heavily optimized the recording loop to fluidly support up to 100 simultaneous player clones without frame drops.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <article class="project-card" data-video="assets/unity_tools.mp4" onclick="openModal(this)">
+                <div class="card-content">
+                    <span class="tech-tag">Editor Tooling / UX</span>
+                    <h3>Unity Custom Tools</h3>
+                    <p>Development of tailored Editor extensions to streamline team workflows and project organization.</p>
+                </div>
+                <div class="hidden-details" style="display: none;">
+                    <p>I like building tools to help developers and designers. I regularly extend the Unity Editor to solve specific problems.</p>
+                    <ul>
+                        <li>Built custom Level Design workflows and gizmos for <em>Storygami</em>, drastically reducing iteration time.</li>
+                        <li>Developed a Project hierarchy tool allowing custom folder coloring to improve asset management and visual organization.</li>
+                        <li>Deep usage of Unity's Editor GUI scripting.</li>
+                    </ul>
+                </div>
+            </article>
+
         </section>
     </main>
 
-    <script src="js/ui.js"></script>
+    <div id="project-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn">&times;</button>
+            
+            <div class="modal-header">
+                <span id="modal-tag" class="tech-tag">Tag</span>
+                <h2 id="modal-title">Project Title</h2>
+            </div>
+            
+            <div class="modal-media-container">
+                <video id="modal-video" autoplay loop muted playsinline></video>
+            </div>
+            
+            <div id="modal-description" class="modal-body">
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-actions">
+        <a href="https://www.linkedin.com/in/roman-guerin/" target="_blank" class="action-btn" title="LinkedIn">
+            <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+        </a>
+        <a href="cv.html" class="action-btn" title="View Resume">
+            <svg viewBox="0 0 24 24"><path d="M14 2h-10v20h16v-14l-6-6zm-8 2h7v5h5v11h-12v-18zm2 14v-2h8v2h-8zm0-4v-2h8v2h-8zm0-4v-2h6v2h-6z"/></svg>
+        </a>
+    </div>
+
     <script src="js/background.js"></script>
+    <script src="js/ui.js"></script>
 </body>
 </html>
