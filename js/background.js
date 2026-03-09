@@ -4,9 +4,10 @@ const ctx = canvas.getContext('2d', { alpha: false });
 let width, height;
 const mouse = { x: -1000, y: -1000, isActive: false };
 
-const CONNECTION_RANGE = 180; 
-const FORK_RANGE = 90; 
-const DEFORMATION_RANGE = 350;
+const DEFORMATION_RANGE = 350; 
+let globalTime = 0;
+let globalGlitch = 0;
+let resizeTimeout;
 
 function resize()
 {
@@ -21,11 +22,14 @@ function resize()
     canvas.style.height = `${height}px`;
     
     ctx.scale(dpr, dpr);
+
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(initParticles, 150);
 }
 
 window.addEventListener('resize', resize);
-resize();
 
+// Mouse Event
 function updateMouse(x, y, active)
 {
     mouse.x = x;
@@ -56,11 +60,12 @@ window.addEventListener('touchend', () =>
     updateMouse(-1000, -1000, false);
 });
 
+// Clic action
 window.addEventListener('mousedown', (e) =>
 {
     if (e.target.tagName !== 'A' && e.target.tagName !== 'VIDEO') 
     {
-        createShockwave(e.clientX, e.clientY);
+        globalGlitch = 0.5; 
     }
 });
 
@@ -68,10 +73,11 @@ window.addEventListener('touchstart', (e) =>
 {
     if (e.touches.length > 0 && e.target.tagName !== 'A' && e.target.tagName !== 'VIDEO') 
     {
-        createShockwave(e.touches[0].clientX, e.touches[0].clientY);
+        globalGlitch = 0.5;
     }
 });
 
+// Actual Func and Class
 class Particle
 {
     constructor(id, layerZ)
@@ -87,13 +93,9 @@ class Particle
         this.targetRadius = this.baseRadius * this.depthScale;
         this.currentRadius = this.targetRadius;
         
-        this.vx = (Math.random() - 0.5) * 0.8 * this.z;
-        this.vy = (Math.random() - 0.5) * 0.8 * this.z;
+        this.vx = (Math.random() - 0.5) * 0.25 * this.z;
+        this.vy = (Math.random() - 0.5) * 0.25 * this.z;
 
-        this.isConnected = false;
-        this.isStunned = false;
-        this.stunTimer = 0;
-        
         const redShade = Math.floor(2 + 18 * this.z); 
         this.baseR = redShade;
         this.baseG = 0;
@@ -113,28 +115,17 @@ class Particle
 
     update()
     {
-        if (this.isStunned)
-        {
-            this.stunTimer--;
-            if (this.stunTimer <= 0)
-            {
-                this.isStunned = false;
-            }
-        }
-        else
-        {
-            this.x += this.vx;
-            this.y += this.vy;
+        this.x += this.vx;
+        this.y += this.vy;
 
-            if (this.x < -this.baseRadius) this.x = width + this.baseRadius;
-            if (this.x > width + this.baseRadius) this.x = -this.baseRadius;
-            if (this.y < -this.baseRadius) this.y = height + this.baseRadius;
-            if (this.y > height + this.baseRadius) this.y = -this.baseRadius;
-        }
+        if (this.x < -this.baseRadius) this.x = width + this.baseRadius;
+        if (this.x > width + this.baseRadius) this.x = -this.baseRadius;
+        if (this.y < -this.baseRadius) this.y = height + this.baseRadius;
+        if (this.y > height + this.baseRadius) this.y = -this.baseRadius;
 
         let distFactor = 1.0;
 
-        if (mouse.isActive && !this.isStunned)
+        if (mouse.isActive)
         {
             const dx = mouse.x - this.x;
             const dy = mouse.y - this.y;
@@ -144,20 +135,11 @@ class Particle
             {
                 const dist = Math.sqrt(distSq);
                 distFactor = Math.max(0.08, dist / DEFORMATION_RANGE);
-                
                 distFactor = Math.pow(distFactor, 1.2);
             }
         }
 
-        if (this.isStunned)
-        {
-            this.targetRadius = (this.baseRadius * this.depthScale) * 0.08;
-        }
-        else
-        {
-            this.targetRadius = (this.baseRadius * this.depthScale) * distFactor; 
-        }
-
+        this.targetRadius = (this.baseRadius * this.depthScale) * distFactor; 
         this.currentRadius += (this.targetRadius - this.currentRadius) * 0.15;
 
         const sizeRatio = this.currentRadius / (this.baseRadius * this.depthScale);
@@ -170,6 +152,27 @@ class Particle
 
     draw()
     {
+        if (globalGlitch > 0)
+        {
+            ctx.globalCompositeOperation = 'lighter';
+            
+            const cx = this.x + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
+            const cy = this.y + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
+            ctx.beginPath();
+            ctx.arc(cx, cy, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(0, 255, 255, ${globalGlitch * 0.8})`;
+            ctx.fill();
+
+            const mx = this.x + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
+            const my = this.y + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
+            ctx.beginPath();
+            ctx.arc(mx, my, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 0, 100, ${globalGlitch * 0.8})`;
+            ctx.fill();
+            
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
         const colorString = `rgb(${this.r}, ${this.g}, ${this.b})`;
 
         ctx.beginPath();
@@ -183,184 +186,60 @@ class Particle
         ctx.lineWidth = 1;
         ctx.stroke();
     }
-
-    stun(duration)
-    {
-        this.isStunned = true;
-        this.stunTimer = duration;
-    }
 }
 
-class ElectricalArc
-{
-    constructor(startX, startY, endX, endY, intensity, layerZ)
-    {
-        this.startX = startX;
-        this.startY = startY;
-        this.endX = endX;
-        this.endY = endY;
-        this.intensity = intensity; 
-        this.z = layerZ;
-    }
-
-    draw()
-    {
-        const segmentCount = 8;
-        const dx = this.endX - this.startX;
-        const dy = this.endY - this.startY;
-        
-        ctx.strokeStyle = `rgba(0, 200, 255, ${this.intensity * 0.8})`; 
-        ctx.lineWidth = 1.5 * this.z * this.intensity;
-        
-        ctx.beginPath();
-        ctx.moveTo(this.startX, this.startY);
-
-        for (let i = 1; i <= segmentCount; i++)
-        {
-            const t = i / segmentCount;
-            const midX = this.startX + dx * t;
-            const midY = this.startY + dy * t;
-            const offset = (Math.random() - 0.5) * 30 * (1 - this.z); 
-            
-            ctx.lineTo(midX + offset, midY + offset);
-        }
-        ctx.stroke();
-    }
-}
-
-class Shockwave
-{
-    constructor(x, y)
-    {
-        this.x = x;
-        this.y = y;
-        this.currentRadius = 0;
-        this.speed = 22; 
-        this.life = 40; 
-        this.alive = true;
-    }
-
-    update()
-    {
-        this.currentRadius += this.speed;
-        this.life--;
-        if (this.life <= 0)
-        {
-            this.alive = false;
-        }
-
-        const rangeSq = this.currentRadius * this.currentRadius;
-        for (let i = 0; i < particles.length; i++)
-        {
-            const p = particles[i];
-            const dx = p.x - this.x;
-            const dy = p.y - this.y;
-            const distSq = dx * dx + dy * dy;
-            
-            if (distSq < rangeSq && distSq > rangeSq - (this.speed * this.speed * 4))
-            {
-                p.stun(45); 
-            }
-        }
-    }
-
-    draw()
-    {
-        const alpha = Math.max(0, this.life / 40);
-        
-        ctx.strokeStyle = `rgba(0, 200, 255, ${alpha * 0.8})`;
-        ctx.lineWidth = 3 * alpha;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-}
-
+// Particle Creation
 const particles = [];
-const arcs = [];
-const shockwaves = [];
-
 const layerCounts = [200, 100, 60, 40, 25, 10]; 
-layerCounts.forEach((count, index) =>
+
+function initParticles()
 {
-    const layerZ = Math.pow((index + 1) / layerCounts.length, 1.5); 
-    for (let i = 0; i < count; i++)
+    particles.length = 0; 
+
+    layerCounts.forEach((count, index) =>
     {
-        particles.push(new Particle(particles.length, layerZ));
-    }
-});
+        const layerZ = Math.pow((index + 1) / layerCounts.length, 1.5); 
+        for (let i = 0; i < count; i++)
+        {
+            particles.push(new Particle(particles.length, layerZ));
+        }
+    });
 
-particles.sort((a, b) => a.z - b.z);
-
-function createShockwave(x, y)
-{
-    shockwaves.push(new Shockwave(x, y));
+    particles.sort((a, b) => a.z - b.z);
 }
 
+// Main Func
 function animate()
 {
+    globalTime += 0.04;
+    
+    if (globalGlitch > 0)
+    {
+        globalGlitch = Math.max(0, globalGlitch - 0.05); 
+    }
+
     ctx.fillStyle = '#030001'; 
     ctx.fillRect(0, 0, width, height);
 
-    particles.forEach(p => p.isConnected = false);
-    arcs.length = 0;
+    ctx.save();
+    if (globalGlitch > 0)
+    {
+        const shakeX = (Math.random() - 0.5) * 30 * globalGlitch;
+        const shakeY = (Math.random() - 0.5) * 30 * globalGlitch;
+        ctx.translate(shakeX, shakeY);
+    }
 
     for (let i = 0; i < particles.length; i++)
     {
-        const p = particles[i];
-
-        if (mouse.isActive && !p.isStunned)
-        {
-            const dxM = mouse.x - p.x;
-            const dyM = mouse.y - p.y;
-            const distSqM = dxM * dxM + dyM * dyM;
-
-            if (distSqM < CONNECTION_RANGE * CONNECTION_RANGE)
-            {
-                p.isConnected = true;
-                const distanceRatio = Math.sqrt(distSqM) / CONNECTION_RANGE;
-                arcs.push(new ElectricalArc(mouse.x, mouse.y, p.x, p.y, (1 - distanceRatio), p.z));
-
-                for (let j = i + 1; j < particles.length; j++)
-                {
-                    const other = particles[j];
-                    if (other.isStunned || other.isConnected) continue;
-
-                    const dxP = p.x - other.x;
-                    const dyP = p.y - other.y;
-                    const distSqP = dxP * dxP + dyP * dyP;
-
-                    if (distSqP < FORK_RANGE * FORK_RANGE)
-                    {
-                        other.isConnected = true; 
-                        const intensityP = 1 - (Math.sqrt(distSqP) / FORK_RANGE);
-                        arcs.push(new ElectricalArc(p.x, p.y, other.x, other.y, intensityP * (1 - distanceRatio), other.z));
-                    }
-                }
-            }
-        }
-        
-        p.update();
-        p.draw();
+        particles[i].update();
+        particles[i].draw();
     }
 
-    for (let i = shockwaves.length - 1; i >= 0; i--)
-    {
-        const sw = shockwaves[i];
-        sw.update();
-        if (sw.alive)
-        {
-            sw.draw();
-        }
-        else
-        {
-            shockwaves.splice(i, 1);
-        }
-    }
-
-    arcs.forEach(arc => arc.draw());
+    ctx.restore();
 
     requestAnimationFrame(animate); 
 }
 
+resize();
+initParticles();
 animate();
