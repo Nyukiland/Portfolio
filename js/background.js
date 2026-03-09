@@ -1,15 +1,13 @@
-// ==========================================
-// MOTEUR DE PARTICULES - MULTI-LAYERS & ADDITIVE GLOW
-// ==========================================
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d', { alpha: false }); 
 
 let width, height;
 const mouse = { x: -1000, y: -1000, isActive: false };
-const CONNECTION_RANGE = 280;
-const FORK_RANGE = 150; 
 
-// --- DPI Scaling & Resize ---
+const CONNECTION_RANGE = 180; 
+const FORK_RANGE = 90; 
+const DEFORMATION_RANGE = 350;
+
 function resize()
 {
     const dpr = window.devicePixelRatio || 1;
@@ -28,7 +26,6 @@ function resize()
 window.addEventListener('resize', resize);
 resize();
 
-// --- Inputs Universels ---
 function updateMouse(x, y, active)
 {
     mouse.x = x;
@@ -75,8 +72,6 @@ window.addEventListener('touchstart', (e) =>
     }
 });
 
-// --- Classes ---
-
 class Particle
 {
     constructor(id, layerZ)
@@ -85,10 +80,11 @@ class Particle
         this.x = Math.random() * width;
         this.y = Math.random() * height;
         
-        this.z = layerZ; // De très proche de 0 (fond) à 1.0 (premier plan)
+        this.z = layerZ; 
+        this.depthScale = 1.3 - this.z; 
         
-        this.baseRadius = 60 + (Math.random() * 40); 
-        this.targetRadius = this.baseRadius * this.z;
+        this.baseRadius = 90 + (Math.random() * 60); 
+        this.targetRadius = this.baseRadius * this.depthScale;
         this.currentRadius = this.targetRadius;
         
         this.vx = (Math.random() - 0.5) * 0.8 * this.z;
@@ -98,9 +94,21 @@ class Particle
         this.isStunned = false;
         this.stunTimer = 0;
         
-        // Matière assombrie : de presque noir pur (2) à gris très sombre (25)
-        const shade = Math.floor(2 + 23 * this.z); 
-        this.baseColor = `rgb(${shade}, ${shade}, ${shade})`;
+        const redShade = Math.floor(2 + 18 * this.z); 
+        this.baseR = redShade;
+        this.baseG = 0;
+        this.baseB = Math.floor(redShade * 0.1); 
+        
+        this.activeR = 0;
+        this.activeG = 200;
+        this.activeB = 255;
+
+        this.r = this.baseR;
+        this.g = this.baseG;
+        this.b = this.baseB;
+        
+        this.strokeAlpha = 0.05 + 0.1 * this.z;
+        this.printOffset = 2 + (5 * (1 - this.z)); 
     }
 
     update()
@@ -124,53 +132,56 @@ class Particle
             if (this.y > height + this.baseRadius) this.y = -this.baseRadius;
         }
 
+        let distFactor = 1.0;
+
+        if (mouse.isActive && !this.isStunned)
+        {
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < DEFORMATION_RANGE * DEFORMATION_RANGE)
+            {
+                const dist = Math.sqrt(distSq);
+                distFactor = Math.max(0.08, dist / DEFORMATION_RANGE);
+                
+                distFactor = Math.pow(distFactor, 1.2);
+            }
+        }
+
         if (this.isStunned)
         {
-            this.targetRadius = (this.baseRadius * this.z) * 0.1;
-        }
-        else if (this.isConnected)
-        {
-            this.targetRadius = (this.baseRadius * this.z) * 0.25;
+            this.targetRadius = (this.baseRadius * this.depthScale) * 0.08;
         }
         else
         {
-            this.targetRadius = this.baseRadius * this.z; 
+            this.targetRadius = (this.baseRadius * this.depthScale) * distFactor; 
         }
 
         this.currentRadius += (this.targetRadius - this.currentRadius) * 0.15;
+
+        const sizeRatio = this.currentRadius / (this.baseRadius * this.depthScale);
+        const t = Math.max(0, Math.min(1, Math.pow(1.0 - sizeRatio, 1.5))); 
+
+        this.r = Math.floor(this.baseR + (this.activeR - this.baseR) * t);
+        this.g = Math.floor(this.baseG + (this.activeG - this.baseG) * t);
+        this.b = Math.floor(this.baseB + (this.activeB - this.baseB) * t);
     }
 
-    // Pass 1 : Rendu de la matière inactive (Sans contour)
-    drawDarkMatter()
+    draw()
     {
+        const colorString = `rgb(${this.r}, ${this.g}, ${this.b})`;
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
-        ctx.fillStyle = this.baseColor;
-        ctx.fill();
-    }
-
-    // Pass 2 : Rendu de l'énergie (Glow puissant)
-    drawEnergy()
-    {
-        const alpha = this.isStunned ? 1.0 : 0.7;
-        
-        // Coeur de la particule
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 255, 204, ${alpha * this.z})`; 
-        ctx.fill();
-        
-        // Halo additif volumineux
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.currentRadius * 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 200, 255, ${alpha * 0.15})`;
+        ctx.fillStyle = colorString;
         ctx.fill();
 
-        // Centre ultra-lumineux
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.currentRadius * 0.4, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.fill();
+        ctx.arc(this.x - this.printOffset, this.y + this.printOffset, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${this.r + 20}, ${this.g}, ${this.b}, ${this.strokeAlpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
     }
 
     stun(duration)
@@ -198,9 +209,8 @@ class ElectricalArc
         const dx = this.endX - this.startX;
         const dy = this.endY - this.startY;
         
-        // Ligne principale cyan
-        ctx.strokeStyle = `rgba(0, 255, 204, ${this.intensity})`;
-        ctx.lineWidth = 2.5 * this.z * this.intensity;
+        ctx.strokeStyle = `rgba(0, 200, 255, ${this.intensity * 0.8})`; 
+        ctx.lineWidth = 1.5 * this.z * this.intensity;
         
         ctx.beginPath();
         ctx.moveTo(this.startX, this.startY);
@@ -210,15 +220,10 @@ class ElectricalArc
             const t = i / segmentCount;
             const midX = this.startX + dx * t;
             const midY = this.startY + dy * t;
-            const offset = (Math.random() - 0.5) * 40 * (1 - this.z); 
+            const offset = (Math.random() - 0.5) * 30 * (1 - this.z); 
             
             ctx.lineTo(midX + offset, midY + offset);
         }
-        ctx.stroke();
-
-        // Core blanc à l'intérieur de l'éclair
-        ctx.strokeStyle = `rgba(255, 255, 255, ${this.intensity * 0.8})`;
-        ctx.lineWidth = 1.0 * this.z * this.intensity;
         ctx.stroke();
     }
 }
@@ -230,7 +235,7 @@ class Shockwave
         this.x = x;
         this.y = y;
         this.currentRadius = 0;
-        this.speed = 18;
+        this.speed = 22; 
         this.life = 40; 
         this.alive = true;
     }
@@ -263,29 +268,21 @@ class Shockwave
     {
         const alpha = Math.max(0, this.life / 40);
         
-        // Onde de choc (Glow fort)
-        ctx.strokeStyle = `rgba(0, 255, 204, ${alpha})`;
-        ctx.lineWidth = 8 * alpha;
+        ctx.strokeStyle = `rgba(0, 200, 255, ${alpha * 0.8})`;
+        ctx.lineWidth = 3 * alpha;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.lineWidth = 2 * alpha;
         ctx.stroke();
     }
 }
 
-// --- Initialisation : 6 Layers de Profondeur ---
 const particles = [];
 const arcs = [];
 const shockwaves = [];
 
-// 450 Particules réparties sur 6 couches. Les couches profondes sont plus denses.
-const layerCounts = [140, 110, 80, 60, 40, 20]; 
+const layerCounts = [200, 100, 60, 40, 25, 10]; 
 layerCounts.forEach((count, index) =>
 {
-    // Espace de profondeur non-linéaire pour accentuer l'effet de gouffre
     const layerZ = Math.pow((index + 1) / layerCounts.length, 1.5); 
     for (let i = 0; i < count; i++)
     {
@@ -300,18 +297,14 @@ function createShockwave(x, y)
     shockwaves.push(new Shockwave(x, y));
 }
 
-// --- Boucle Principale (Render Pipeline) ---
 function animate()
 {
-    // Fond très sombre
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#020203'; 
+    ctx.fillStyle = '#030001'; 
     ctx.fillRect(0, 0, width, height);
 
     particles.forEach(p => p.isConnected = false);
     arcs.length = 0;
 
-    // --- Update Logique ---
     for (let i = 0; i < particles.length; i++)
     {
         const p = particles[i];
@@ -348,38 +341,24 @@ function animate()
         }
         
         p.update();
+        p.draw();
     }
 
     for (let i = shockwaves.length - 1; i >= 0; i--)
     {
         const sw = shockwaves[i];
         sw.update();
-        if (!sw.alive) shockwaves.splice(i, 1);
-    }
-
-    // --- Render Pass 1 : Matière Sombre Inactive ---
-    for (let p of particles)
-    {
-        if (!p.isConnected && !p.isStunned)
+        if (sw.alive)
         {
-            p.drawDarkMatter();
+            sw.draw();
         }
-    }
-
-    // --- Render Pass 2 : Énergie (Additive Blending) ---
-    ctx.globalCompositeOperation = 'lighter';
-    
-    // On dessine l'énergie par-dessus la matière (Z-Buffer respecté grâce au tri initial)
-    for (let p of particles)
-    {
-        if (p.isConnected || p.isStunned)
+        else
         {
-            p.drawEnergy();
+            shockwaves.splice(i, 1);
         }
     }
 
     arcs.forEach(arc => arc.draw());
-    shockwaves.forEach(sw => sw.draw());
 
     requestAnimationFrame(animate); 
 }
