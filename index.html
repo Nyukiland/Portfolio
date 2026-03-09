@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - Programmeur</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    
+    <main class="content">
+        <header>
+            <h1>Mon Profil</h1>
+            <p>Programmeur Jeu Vidéo | C++ / C# | Optimisation & Systèmes Complexes</p>
+        </header>
+
+        <section id="projects">
+            <article class="project" onclick="toggleProject(this)">
+                <h2>Moteur Physique Custom (C++)</h2>
+                <div class="project-details">
+                    <p>Développement d'un solver de contraintes basé sur l'algorithme de Gauss-Seidel.</p>
+                </div>
+            </article>
+
+            <article class="project" onclick="toggleProject(this)">
+                <h2>Générateur Procédural (Unity / C#)</h2>
+                <div class="project-details">
+                    <p>Système de génération utilisant le Wave Function Collapse.</p>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script src="js/ui.js"></script>
+    <script src="js/background.js"></script>
+</body>
+</html>
