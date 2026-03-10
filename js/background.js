@@ -5,11 +5,15 @@ const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d', { alpha: false }); 
 
 let width, height;
-const mouse = { x: -1000, y: -1000, isActive: false };
+let mouse = {
+    x: undefined,
+    y: undefined,
+    isActive: false,
+    radius: 120,
+    isDown: false 
+};
 
 const DEFORMATION_RANGE = 350; 
-let globalTime = 0;
-let globalGlitch = 0;
 let resizeTimeout;
 
 // Window Resize
@@ -51,6 +55,20 @@ window.addEventListener('mouseout', () =>
     updateMouse(-1000, -1000, false);
 });
 
+window.addEventListener('mousedown', () => {
+    mouse.isDown = true;
+});
+
+window.addEventListener('mouseup', () => {
+    mouse.isDown = false;
+});
+
+window.addEventListener('mouseleave', () => {
+    mouse.isDown = false;
+    mouse.x = undefined;
+    mouse.y = undefined;
+});
+
 window.addEventListener('touchstart', (e) =>
 {
     if (e.touches.length > 0)
@@ -62,33 +80,7 @@ window.addEventListener('touchstart', (e) =>
 window.addEventListener('touchend', () =>
 {
     updateMouse(-1000, -1000, false);
-});
-
-// Click Action
-window.addEventListener('mousedown', (e) =>
-{
-    if (window.isInteractionPaused)
-    {
-        return;
-    }
-
-    if (e.target.tagName !== 'A' && e.target.tagName !== 'VIDEO' && e.target.tagName !== 'IMG') 
-    {
-        globalGlitch = 0.5; 
-    }
-});
-
-window.addEventListener('touchstart', (e) => 
-{
-    if (window.isInteractionPaused)
-    {
-        return;
-    }
-
-    if (e.touches.length > 0 && e.target.tagName !== 'A' && e.target.tagName !== 'VIDEO' && e.target.tagName !== 'IMG') 
-    {
-        globalGlitch = 0.5;
-    }
+    mouse.isDown = false;
 });
 
 // Particle Class
@@ -97,8 +89,14 @@ class Particle
     constructor(id, layerZ)
     {
         this.id = id;
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
+        
+        // Coordonnées logiques (celles qui continuent de flotter)
+        this.logicalX = Math.random() * width;
+        this.logicalY = Math.random() * height;
+        
+        // Coordonnées d'affichage (celles qu'on dessine)
+        this.x = this.logicalX;
+        this.y = this.logicalY;
         
         this.z = layerZ; 
         this.depthScale = 1.3 - this.z; 
@@ -129,42 +127,59 @@ class Particle
 
     update()
     {
-        this.x += this.vx;
-        this.y += this.vy;
+        // 1. Dérive constante des coordonnées logiques
+        this.logicalX += this.vx;
+        this.logicalY += this.vy;
 
-        if (this.x < -this.baseRadius)
-        {
-            this.x = width + this.baseRadius;
-        }
-        if (this.x > width + this.baseRadius)
-        {
-            this.x = -this.baseRadius;
-        }
-        if (this.y < -this.baseRadius)
-        {
-            this.y = height + this.baseRadius;
-        }
-        if (this.y > height + this.baseRadius)
-        {
-            this.y = -this.baseRadius;
-        }
+        // 2. Wrap-around (rebouclage sur les bords)
+        // On déplace la position logique ET l'affichage pour éviter un "saut" visuel traversant l'écran
+        const padding = this.baseRadius * 2;
+        if (this.logicalX < -padding) { this.logicalX += width + padding * 2; this.x += width + padding * 2; }
+        if (this.logicalX > width + padding) { this.logicalX -= width + padding * 2; this.x -= width + padding * 2; }
+        if (this.logicalY < -padding) { this.logicalY += height + padding * 2; this.y += height + padding * 2; }
+        if (this.logicalY > height + padding) { this.logicalY -= height + padding * 2; this.y -= height + padding * 2; }
 
         let distFactor = 1.0;
+        
+        // Par défaut, la cible visuelle est la position logique
+        let targetX = this.logicalX;
+        let targetY = this.logicalY;
 
+        // 3. Interaction avec la souris (Création du point cible repoussé)
         if (mouse.isActive && !window.isInteractionPaused)
         {
-            const dx = mouse.x - this.x;
-            const dy = mouse.y - this.y;
+            // On calcule la distance par rapport à la position logique pour une stabilité mathématique
+            const dx = mouse.x - this.logicalX;
+            const dy = mouse.y - this.logicalY;
             const distSq = dx * dx + dy * dy;
 
-            if (distSq < DEFORMATION_RANGE * DEFORMATION_RANGE)
+            const currentRange = mouse.isDown ? DEFORMATION_RANGE * 1.5 : DEFORMATION_RANGE;
+
+            if (distSq < currentRange * currentRange)
             {
-                const dist = Math.sqrt(distSq);
-                distFactor = Math.max(0.08, dist / DEFORMATION_RANGE);
+                const dist = Math.max(1, Math.sqrt(distSq)); 
+                
+                distFactor = Math.max(0.08, dist / currentRange);
                 distFactor = Math.pow(distFactor, 1.2);
+
+                let force = (currentRange - dist) / currentRange; 
+                
+                // Puissance de la répulsion en pixels (250px si cliqué, 80px au survol)
+                let pushStrength = mouse.isDown ? 250 : 80; 
+                let pushMultiplier = force * pushStrength * this.depthScale;
+
+                // On modifie la cible vers l'opposé de la souris
+                targetX -= (dx / dist) * pushMultiplier;
+                targetY -= (dy / dist) * pushMultiplier;
             }
         }
 
+        // 4. Physique du ressort (Spring/Lerp) - On approche X/Y de TargetX/TargetY
+        // 0.08 définit la "rigidité" de l'élastique (plus proche de 1 = plus sec, plus proche de 0 = plus mou)
+        this.x += (targetX - this.x) * 0.08;
+        this.y += (targetY - this.y) * 0.08;
+
+        // 5. Interpolation de la taille et de la couleur
         this.targetRadius = (this.baseRadius * this.depthScale) * distFactor; 
         this.currentRadius += (this.targetRadius - this.currentRadius) * 0.15;
 
@@ -178,28 +193,6 @@ class Particle
 
     draw()
     {
-        if (globalGlitch > 0 && !window.isInteractionPaused)
-        {
-            ctx.globalCompositeOperation = 'lighter';
-            ctx.lineWidth = 1 + (4 * globalGlitch); 
-            
-            const cx = this.x + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
-            const cy = this.y + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
-            ctx.beginPath();
-            ctx.arc(cx, cy, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(0, 255, 255, ${globalGlitch * 0.9})`;
-            ctx.stroke();
-
-            const mx = this.x + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
-            const my = this.y + (Math.random() - 0.5) * 40 * globalGlitch * this.depthScale;
-            ctx.beginPath();
-            ctx.arc(mx, my, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(255, 0, 100, ${globalGlitch * 0.9})`;
-            ctx.stroke();
-            
-            ctx.globalCompositeOperation = 'source-over';
-        }
-
         const colorString = `rgb(${this.r}, ${this.g}, ${this.b})`;
 
         ctx.beginPath();
@@ -238,31 +231,14 @@ function initParticles()
 // Main Loop
 function animate()
 {
-    globalTime += 0.04;
-    
-    if (globalGlitch > 0)
-    {
-        globalGlitch = Math.max(0, globalGlitch - 0.05); 
-    }
-
-    ctx.fillStyle = '#030001'; 
+    ctx.fillStyle = '#020005'; 
     ctx.fillRect(0, 0, width, height);
-
-    ctx.save();
-    if (globalGlitch > 0 && !window.isInteractionPaused)
-    {
-        const shakeX = (Math.random() - 0.5) * 30 * globalGlitch;
-        const shakeY = (Math.random() - 0.5) * 30 * globalGlitch;
-        ctx.translate(shakeX, shakeY);
-    }
 
     for (let i = 0; i < particles.length; i++)
     {
         particles[i].update();
         particles[i].draw();
     }
-
-    ctx.restore();
 
     requestAnimationFrame(animate); 
 }

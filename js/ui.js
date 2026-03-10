@@ -5,6 +5,10 @@ const modalTag = document.getElementById('modal-tag');
 const modalTitle = document.getElementById('modal-title');
 const modalDescription = document.getElementById('modal-description');
 const modalVideo = document.getElementById('modal-video');
+const modalImage = document.getElementById('modal-image');
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+let currentMediaElement = null; // Garde en mémoire quel média est affiché
 
 function openModal(cardElement)
 {
@@ -13,21 +17,30 @@ function openModal(cardElement)
     const tag = cardElement.querySelector('.tech-tag').innerText;
     const title = cardElement.querySelector('h3').innerText;
     const hiddenDetails = cardElement.querySelector('.hidden-details').innerHTML;
+    
     const videoSrc = cardElement.getAttribute('data-video');
+    const imageSrc = cardElement.getAttribute('data-image');
 
     modalTag.innerText = tag;
     modalTitle.innerText = title;
     modalDescription.innerHTML = hiddenDetails;
     
+    // Gérer l'affichage Vidéo OU Image
     if (videoSrc) 
     {
         modalVideo.src = videoSrc;
         modalVideo.style.display = 'block';
+        modalImage.style.display = 'none';
         modalVideo.play();
+        currentMediaElement = modalVideo;
     } 
-    else 
+    else if (imageSrc)
     {
+        modalImage.src = imageSrc;
+        modalImage.style.display = 'block';
         modalVideo.style.display = 'none';
+        modalVideo.pause();
+        currentMediaElement = modalImage;
     }
 
     modalOverlay.classList.add('active');
@@ -41,8 +54,27 @@ function closeModal()
     modalOverlay.classList.remove('active');
     document.body.style.overflow = '';
     modalVideo.pause(); 
+    
+    // Quitter le plein écran si on ferme la modale
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    }
 }
 
+// Fullscreen Logic
+fullscreenBtn.addEventListener('click', () => {
+    if (!currentMediaElement) return;
+
+    if (!document.fullscreenElement) {
+        currentMediaElement.requestFullscreen().catch(err => {
+            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+});
+
+// Event Listeners
 closeBtn.addEventListener('click', closeModal);
 
 modalOverlay.addEventListener('click', (e) =>
