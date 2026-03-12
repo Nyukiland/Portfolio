@@ -112,7 +112,7 @@ class Particle
         this.vy = (Math.random() - 0.5) * 0.25 * this.z;
 
         // Base colors (boosted to prevent black crush)
-        const redShade = Math.floor(15 + 45 * this.z); 
+        const redShade = Math.floor(25 * this.z); 
         this.baseR = redShade;
         this.baseG = Math.floor(redShade * 0.05);
         this.baseB = Math.floor(redShade * 0.15); 
