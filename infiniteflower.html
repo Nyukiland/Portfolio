@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infinite Black Flower</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/experiment.css" />
+  </head>
+  <body>
+    <div id="top-nav">
+      <button class="hamburger" id="hamburger-btn">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="dropdown" id="dropdown-menu">
+        <a href="index.html">Home</a>
+        <a href="infiniteflower.html">Infinite Flower</a>
+        <a href="cv.html">CV</a>
+      </nav>
+    </div>
+
+    <div id="ui">
+      <button class="snap-btn" onclick="captureFlower()">
+        <div class="viewfinder">
+          <div class="viewfinder-corner tl-corner"></div>
+          <div class="viewfinder-corner tr-corner"></div>
+          <div class="viewfinder-corner bl-corner"></div>
+          <div class="viewfinder-corner br-corner"></div>
+          <div class="center-circle"></div>
+        </div>
+        <span class="snap-label">Snap</span>
+      </button>
+    </div>
+    
+    <canvas id="canvas"></canvas>
+    
+    <script src="js/ui.js" defer></script>
+    <script src="js/infiniteflower.js" defer></script>
+  </body>
+</html>

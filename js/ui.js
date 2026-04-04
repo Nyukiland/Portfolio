@@ -8,10 +8,9 @@ const modalVideo = document.getElementById('modal-video');
 const modalImage = document.getElementById('modal-image');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 
-let currentMediaElement = null; // Garde en mémoire quel média est affiché
+let currentMediaElement = null; 
 
-function openModal(cardElement)
-{
+function openModal(cardElement) {
     window.isInteractionPaused = true; 
 
     const tag = cardElement.querySelector('.tech-tag').innerText;
@@ -21,74 +20,87 @@ function openModal(cardElement)
     const videoSrc = cardElement.getAttribute('data-video');
     const imageSrc = cardElement.getAttribute('data-image');
 
-    modalTag.innerText = tag;
-    modalTitle.innerText = title;
-    modalDescription.innerHTML = hiddenDetails;
+    if (modalTag) modalTag.innerText = tag;
+    if (modalTitle) modalTitle.innerText = title;
+    if (modalDescription) modalDescription.innerHTML = hiddenDetails;
     
-    // Gérer l'affichage Vidéo OU Image
-    if (videoSrc) 
-    {
+    if (videoSrc && modalVideo) {
         modalVideo.src = videoSrc;
         modalVideo.style.display = 'block';
-        modalImage.style.display = 'none';
+        if (modalImage) modalImage.style.display = 'none';
         modalVideo.play();
         currentMediaElement = modalVideo;
     } 
-    else if (imageSrc)
-    {
+    else if (imageSrc && modalImage) {
         modalImage.src = imageSrc;
         modalImage.style.display = 'block';
-        modalVideo.style.display = 'none';
-        modalVideo.pause();
+        if (modalVideo) {
+            modalVideo.style.display = 'none';
+            modalVideo.pause();
+        }
         currentMediaElement = modalImage;
     }
 
-    modalOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if (modalOverlay) {
+        modalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
-function closeModal()
-{
+function closeModal() {
     window.isInteractionPaused = false; 
 
-    modalOverlay.classList.remove('active');
+    if (modalOverlay) modalOverlay.classList.remove('active');
     document.body.style.overflow = '';
-    modalVideo.pause(); 
+    if (modalVideo) modalVideo.pause(); 
     
-    // Quitter le plein écran si on ferme la modale
     if (document.fullscreenElement) {
         document.exitFullscreen();
     }
 }
 
-// Fullscreen Logic
-fullscreenBtn.addEventListener('click', () => {
-    if (!currentMediaElement) return;
-
-    if (!document.fullscreenElement) {
-        currentMediaElement.requestFullscreen().catch(err => {
-            console.error(`Error attempting to enable fullscreen: ${err.message}`);
-        });
-    } else {
-        document.exitFullscreen();
-    }
-});
-
 // Event Listeners
-closeBtn.addEventListener('click', closeModal);
+if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+        if (!currentMediaElement) return;
 
-modalOverlay.addEventListener('click', (e) =>
-{
-    if (e.target === modalOverlay)
-    {
+        if (!document.fullscreenElement) {
+            currentMediaElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    });
+}
+
+if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+}
+
+if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            closeModal();
+        }
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('active')) {
         closeModal();
     }
 });
 
-document.addEventListener('keydown', (e) =>
-{
-    if (e.key === 'Escape' && modalOverlay.classList.contains('active'))
-    {
-        closeModal();
-    }
+// DropDown menu
+document.addEventListener("DOMContentLoaded", () => {
+  const hamburgerBtn = document.getElementById("hamburger-btn");
+  const dropdownMenu = document.getElementById("dropdown-menu");
+
+  if (hamburgerBtn && dropdownMenu) {
+    hamburgerBtn.addEventListener("click", () => {
+      hamburgerBtn.classList.toggle("open");
+      dropdownMenu.classList.toggle("open");
+    });
+  }
 });
