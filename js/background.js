@@ -19,7 +19,8 @@ let resizeTimeout;
 // Window Resize Management
 function resize()
 {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+    
     width = window.innerWidth;
     height = window.innerHeight;
     
@@ -137,49 +138,32 @@ class Particle
 
         const padding = this.baseRadius * 2;
 
-        // Screen wrap-around
-        if (this.logicalX < -padding) 
-        {
-            this.logicalX += width + padding * 2; 
-            this.x += width + padding * 2; 
-        }
-        if (this.logicalX > width + padding) 
-        { 
-            this.logicalX -= width + padding * 2; 
-            this.x -= width + padding * 2; 
-        }
-        if (this.logicalY < -padding) 
-        { 
-            this.logicalY += height + padding * 2; 
-            this.y += height + padding * 2; 
-        }
-        if (this.logicalY > height + padding) 
-        { 
-            this.logicalY -= height + padding * 2; 
-            this.y -= height + padding * 2; 
-        }
+        if (this.logicalX < -padding) { this.logicalX += width + padding * 2; this.x += width + padding * 2; }
+        if (this.logicalX > width + padding) { this.logicalX -= width + padding * 2; this.x -= width + padding * 2; }
+        if (this.logicalY < -padding) { this.logicalY += height + padding * 2; this.y += height + padding * 2; }
+        if (this.logicalY > height + padding) { this.logicalY -= height + padding * 2; this.y -= height + padding * 2; }
 
         let distFactor = 1.0;
         let targetX = this.logicalX;
         let targetY = this.logicalY;
 
-        // Mouse interaction physics
         if (mouse.isActive && !window.isInteractionPaused) 
         {
             const dx = mouse.x - this.logicalX;
             const dy = mouse.y - this.logicalY;
             const distSq = dx * dx + dy * dy;
 
-            const currentRange = mouse.isDown ? DEFORMATION_RANGE * 1.5 : DEFORMATION_RANGE;
+            const range = mouse.isDown ? DEFORMATION_RANGE * 1.5 : DEFORMATION_RANGE;
+            const rangeSq = range * range;
 
-            if (distSq < currentRange * currentRange) 
+            if (distSq < rangeSq) 
             {
                 const dist = Math.max(1, Math.sqrt(distSq)); 
                 
-                distFactor = Math.max(0.08, dist / currentRange);
-                distFactor = Math.pow(distFactor, 1.2);
+                distFactor = Math.max(0.08, dist / range);
+                distFactor = distFactor * distFactor; 
 
-                let force = (currentRange - dist) / currentRange; 
+                let force = (range - dist) / range; 
                 let pushStrength = mouse.isDown ? 250 : 80; 
                 let pushMultiplier = force * pushStrength * this.depthScale;
 
@@ -188,37 +172,44 @@ class Particle
             }
         }
 
-        // Lerp towards target position
         this.x += (targetX - this.x) * 0.08;
         this.y += (targetY - this.y) * 0.08;
 
-        // Interpolate size
         this.targetRadius = (this.baseRadius * this.depthScale) * distFactor; 
-        this.currentRadius += (this.targetRadius - this.currentRadius) * 0.15;
-
-        // Interpolate colors
-        const sizeRatio = this.currentRadius / (this.baseRadius * this.depthScale);
-        const t = Math.max(0, Math.min(1, Math.pow(1.0 - sizeRatio, 1.5))); 
-
-        this.r = Math.floor(this.baseR + (this.activeR - this.baseR) * t);
-        this.g = Math.floor(this.baseG + (this.activeG - this.baseG) * t);
-        this.b = Math.floor(this.baseB + (this.activeB - this.baseB) * t);
+        
+        const radiusDiff = this.targetRadius - this.currentRadius;
+        if (Math.abs(radiusDiff) > 0.1)
+        {
+            this.currentRadius += radiusDiff * 0.15;
+            
+            const sizeRatio = this.currentRadius / (this.baseRadius * this.depthScale);
+            // Replaced Math.pow with simple clamping
+            const t = Math.max(0, Math.min(1, 1.0 - sizeRatio)); 
+            
+            this.r = Math.floor(this.baseR + (this.activeR - this.baseR) * t);
+            this.g = Math.floor(this.baseG + (this.activeG - this.baseG) * t);
+            this.b = Math.floor(this.baseB + (this.activeB - this.baseB) * t);
+            
+            this.cachedColor = `rgb(${this.r}, ${this.g}, ${this.b})`;
+            this.cachedStroke = `rgba(${this.r + 40}, ${this.g}, ${this.b}, ${this.strokeAlpha})`;
+        }
+        else if (!this.cachedColor)
+        {
+            this.cachedColor = `rgb(${this.r}, ${this.g}, ${this.b})`;
+            this.cachedStroke = `rgba(${this.r + 40}, ${this.g}, ${this.b}, ${this.strokeAlpha})`;
+        }
     }
 
     draw() 
     {
-        const colorString = `rgb(${this.r}, ${this.g}, ${this.b})`;
-
-        // Draw main circle
         ctx.beginPath();
         ctx.arc(this.x, this.y, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
-        ctx.fillStyle = colorString;
+        ctx.fillStyle = this.cachedColor;
         ctx.fill();
 
-        // Draw offset stroke (Tech UI feel)
         ctx.beginPath();
         ctx.arc(this.x - this.printOffset, this.y + this.printOffset, Math.max(0.1, this.currentRadius), 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(${this.r + 40}, ${this.g}, ${this.b}, ${this.strokeAlpha})`;
+        ctx.strokeStyle = this.cachedStroke;
         ctx.lineWidth = 1;
         ctx.stroke();
     }
