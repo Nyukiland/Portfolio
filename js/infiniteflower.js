@@ -45,7 +45,7 @@ function splitBezier1D(t, p0, p1, p2, p3) {
 }
 
 // Petal class
-const PETAL_DURATION = 2000.0;
+const PETAL_DURATION = 1150.0;
 class Petal {
   constructor(angle, scale, lengthRatio, widthFactor, cY1Factor, cY2Factor, asymFactor, delay) {
     this.angle = angle;
@@ -72,8 +72,7 @@ class Petal {
 
     targetCtx.save();
     
-    // Le fade parfait : reste opaque jusqu'à 0.20, puis meurt doucement jusqu'à 0.10
-    targetCtx.globalAlpha = this.scale < 0.20 ? Math.max(0, (this.scale - 0.1) / 0.10) : 1.0;
+    targetCtx.globalAlpha = this.scale < 0.15 ? Math.max(0, (this.scale - 0.1) / 0.05) : 1.0;
     
     targetCtx.rotate(this.angle);
     targetCtx.scale(this.scale, this.scale);
@@ -119,12 +118,16 @@ function spawnRing(time) {
   const angleStep = (Math.PI * 2) / numPetals;
   currentRingAngleOffset += angleStep * 0.5;
 
-  const RING_TOTAL_TIME = 3000;
+  const STAGGER_MS = PETAL_DURATION; 
+  const halfPetals = numPetals / 2;
   let newRing = [];
 
   for (let i = 0; i < numPetals; i++) {
     const worldAngle = (i * angleStep) + currentRingAngleOffset;
     const flow = Math.pow((Math.sin((3 + Math.floor((time + timeOffset) * 0.000015) % 4) * worldAngle + seed * 10.0) + 1) / 2, 1.5) * 2 - 1;
+    
+    const delay = (i % halfPetals) * STAGGER_MS;
+
     newRing.push(new Petal(
       worldAngle,
       1.0,
@@ -133,13 +136,15 @@ function spawnRing(time) {
       0.2 + (Math.sin(seed * 2.2) + 1) * 0.25,
       0.5 + (Math.cos(seed * 1.5) + 1) * 0.25,
       (Math.sin(seed * 4.3) * 0.35) + flow * 0.1,
-      (i % (numPetals / 2)) * ((RING_TOTAL_TIME - PETAL_DURATION) / Math.max(1, (numPetals / 2) - 1))
+      delay 
     ));
   }
   
   rings.push(newRing);
   
-  timeUntilNextRing = 4000;
+  const maxSequenceDelay = (halfPetals - 1) * STAGGER_MS;
+  const ringTotalDrawTime = maxSequenceDelay + PETAL_DURATION;
+  timeUntilNextRing = ringTotalDrawTime + 3000; 
 }
 
 // Screenshot
@@ -188,12 +193,12 @@ function animate(time) {
     spawnTimer = 0;
   }
 
-  const shrinkRate = Math.pow(0.9975, dt / 16.66);
+  const shrinkRate = Math.pow(0.9988, dt / 16.66);
   
   for (let r = 0; r < rings.length; r++) {
       rings[r] = rings[r].filter(p => {
           p.update(shrinkRate, dt);
-          return p.scale >= 0.1;
+          return p.scale >= 0.05;
       });
   }
   rings = rings.filter(ring => ring.length > 0);
