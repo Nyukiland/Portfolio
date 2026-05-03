@@ -9,18 +9,7 @@
     <link rel="stylesheet" href="css/experiment.css" />
   </head>
   <body>
-    <div id="top-nav">
-      <button class="hamburger" id="hamburger-btn">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-      <nav class="dropdown" id="dropdown-menu">
-        <a href="index.html">Home</a>
-        <a href="infiniteflower.html">Infinite Flower</a>
-        <a href="cv.html">CV</a>
-      </nav>
-    </div>
+    <top-nav></top-nav>
 
     <div id="ui">
       <button class="snap-btn" onclick="captureFlower()">
@@ -35,9 +24,27 @@
       </button>
     </div>
     
+    <div id="color-controls">
+      <div class="control-block">
+        <label>Background</label>
+        <input type="range" id="bgColor" class="color-slider" min="0" max="100" value="0">
+        <input type="range" id="bgIntensity" class="intensity-slider" min="0" max="100" value="0">
+      </div>
+      <div class="control-block">
+        <label>Flower Fill</label>
+        <input type="range" id="flowerColor" class="color-slider" min="0" max="100" value="0">
+        <input type="range" id="flowerIntensity" class="intensity-slider" min="0" max="100" value="0">
+      </div>
+      <div class="control-block">
+        <label>Flower Line</label>
+        <input type="range" id="lineColor" class="color-slider" min="0" max="100" value="0">
+        <input type="range" id="lineIntensity" class="intensity-slider" min="0" max="100" value="100">
+      </div>
+    </div>
+    
     <canvas id="canvas"></canvas>
     
-    <script src="js/ui.js" defer></script>
-    <script src="js/infiniteflower.js" defer></script>
+    <script src="js/nav.js"></script>
+    <script src="js/infiniteflower.js"></script>
   </body>
 </html>

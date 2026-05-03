@@ -91,16 +91,3 @@ document.addEventListener('keydown', (e) => {
         closeModal();
     }
 });
-
-// DropDown menu
-document.addEventListener("DOMContentLoaded", () => {
-  const hamburgerBtn = document.getElementById("hamburger-btn");
-  const dropdownMenu = document.getElementById("dropdown-menu");
-
-  if (hamburgerBtn && dropdownMenu) {
-    hamburgerBtn.addEventListener("click", () => {
-      hamburgerBtn.classList.toggle("open");
-      dropdownMenu.classList.toggle("open");
-    });
-  }
-});
