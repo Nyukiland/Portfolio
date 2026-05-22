@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flourishing L-System</title>
+    
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/experiment.css" />
+    <link rel="stylesheet" href="css/lsystem.css" />
+    
+    <style>
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0; 
+        }
+    </style>
+  </head>
+<body>
+    <top-nav></top-nav>
+    <canvas id="canvas"></canvas>
+
+    <div id="ui-panel">
+        <div>
+            <h1 class="panel-title">Flourishing L-System</h1>
+            <p id="stats-display" class="panel-subtitle">String Length: 0</p>
+        </div>
+
+        <div class="space-y">
+            <div class="control-block">
+                <label>Branch Color</label>
+                <input type="range" id="branchColor" class="color-slider" min="0" max="100" value="60">
+                <input type="range" id="branchIntensity" class="intensity-slider" min="0" max="100" value="80">
+            </div>
+            
+            <div class="control-block">
+                <label>Flower Color</label>
+                <input type="range" id="flowerColor" class="color-slider" min="0" max="100" value="85">
+                <input type="range" id="flowerIntensity" class="intensity-slider" min="0" max="100" value="100">
+            </div>
+
+            <div>
+                <label class="flex-between">
+                    <span>Branching Probability</span>
+                    <span id="val-branching" class="text-white">75%</span>
+                </label>
+                <input type="range" id="param-branching" min="0" max="100" value="75" class="native-range">
+            </div>
+
+            <div>
+                <label class="flex-between">
+                    <span>Flower Probability</span>
+                    <span id="val-flowers" class="text-white">40%</span>
+                </label>
+                <input type="range" id="param-flowers" min="0" max="100" value="40" class="native-range">
+            </div>
+            
+            <div class="toggle-row">
+                <label class="toggle-label">Organic Curves (Splines)</label>
+                <div id="spline-toggle" class="toggle-switch active">
+                    <div class="toggle-thumb"></div>
+                </div>
+            </div>
+        </div>
+
+        <button id="btn-generate" class="generate-btn">
+            Rewrite String & Spawn
+        </button>
+    </div>
+
+    <script src="js/nav.js"></script>
+    <script src="js/lsystem.js"></script>
+</body>
+</html>

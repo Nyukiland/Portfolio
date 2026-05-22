@@ -12,6 +12,7 @@ class TopNav extends HTMLElement
               <nav class="dropdown" id="dropdown-menu">
                 <a href="index.html">Home</a>
                 <a href="infiniteflower.html">Infinite Flower</a>
+                <a href="lsystem.html">Flourishing L-System</a>
                 <a href="cv.html">CV</a>
               </nav>
             </div>

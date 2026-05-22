@@ -7,116 +7,9 @@ body, html {
   overflow: hidden;
   font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
+
 canvas {
   display: block;
-}
-
-#ui {
-  position: absolute;
-  bottom: 40px;
-  right: 40px;
-  z-index: 10;
-}
-
-.snap-btn {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 10px;
-  transition: opacity 0.2s, transform 0.2s;
-  outline: none;
-}
-
-.snap-btn:hover {
-  opacity: 0.8;
-}
-
-.snap-btn:active {
-  transform: scale(0.96);
-}
-
-.viewfinder {
-  width: 32px;
-  height: 32px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.viewfinder-corner {
-  position: absolute;
-  inset: 0;
-  box-sizing: border-box;
-}
-
-.tl-corner {
-  border-top: 1.5px solid white;
-  border-left: 1.5px solid white;
-  clip-path: inset(0 70% 70% 0);
-}
-
-.tr-corner {
-  border-top: 1.5px solid white;
-  border-right: 1.5px solid white;
-  clip-path: inset(0 0 70% 70%);
-}
-
-.bl-corner {
-  border-bottom: 1.5px solid white;
-  border-left: 1.5px solid white;
-  clip-path: inset(70% 70% 0 0);
-}
-
-.br-corner {
-  border-bottom: 1.5px solid white;
-  border-right: 1.5px solid white;
-  clip-path: inset(70% 0 0 70%);
-}
-
-.center-circle {
-  width: 6px;
-  height: 6px;
-  border: 1.5px solid white;
-  border-radius: 50%;
-}
-
-.snap-label {
-  font-size: 12px;
-  font-weight: 300;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
-  user-select: none;
-}
-
-#color-controls {
-  position: fixed;
-  bottom: 30px;
-  left: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  z-index: 100;
-  background: rgba(10, 10, 10, 0.7);
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(5px);
-  color: white;
-  font-family: sans-serif;
-  font-size: 14px;
-}
-
-.control-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
 }
 
 .control-block {
@@ -148,14 +41,9 @@ canvas {
 
 .color-slider {
   background: linear-gradient(to right, 
-    #ffffff 0%, 
-    #ff0000 10%, 
-    #ffff00 25%, 
-    #00ff00 40%, 
-    #00ffff 55%, 
-    #0000ff 70%, 
-    #ff00ff 85%, 
-    #ff0000 100%
+    #ffffff 0%, #ff0000 10%, #ffff00 25%, 
+    #00ff00 40%, #00ffff 55%, #0000ff 70%, 
+    #ff00ff 85%, #ff0000 100%
   );
 }
 
