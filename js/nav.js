@@ -14,6 +14,7 @@ class TopNav extends HTMLElement
                 <a href="infiniteflower.html">Infinite Flower</a>
                 <a href="lsystem.html">Flourishing L-System</a>
                 <a href="cv.html">CV</a>
+                <a href="linktree.html">LinkTree</a>
               </nav>
             </div>
         `;

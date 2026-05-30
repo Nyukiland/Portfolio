@@ -490,3 +490,152 @@ top-nav {
   position: relative;
   z-index: 1000;
 }
+
+.back-home-wrapper {
+  width: 90%;
+  max-width: 450px;
+  margin: 20px auto;
+  display: flex;
+  justify-content: flex-start;
+  z-index: 10;
+}
+
+.back-home-btn {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted, #a0a0b0);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.2s ease;
+}
+
+.back-home-btn svg {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  fill: currentColor;
+}
+
+.back-home-btn:hover {
+  color: var(--text-main, #ffffff);
+  transform: translateX(-4px);
+}
+
+.link-tree-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 90%;
+  max-width: 600px;
+  margin: 0 auto 40px auto;
+  z-index: 10;
+}
+
+.link-tree-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-bg, rgba(15, 0, 5, 0.4));
+  border: 1px solid var(--card-border, rgba(255, 30, 60, 0.2));
+  border-radius: 12px;
+  padding: 20px 24px; /* Taller padding */
+  color: var(--text-main, #ffffff);
+  text-decoration: none;
+  font-weight: 700;
+  
+  font-size: clamp(1rem, 4vw, 1.5rem); 
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.link-tree-btn:hover {
+  border-color: var(--card-hover-border, rgba(0, 213, 255, 0.5));
+  background: rgba(0, 213, 255, 0.05);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.link-tree-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.link-tree-btn svg,
+.link-tree-btn img {
+  width: clamp(24px, 6vw, 32px);
+  height: clamp(24px, 6vw, 32px);
+  fill: currentColor;
+}
+
+.cta-section {
+  width: 100%;
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.cta-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--card-bg, rgba(15, 0, 5, 0.4));
+  border: 1px solid var(--card-border, rgba(255, 30, 60, 0.2));
+  border-radius: 12px;
+  padding: 30px 40px;
+  text-decoration: none;
+  color: var(--text-main, #ffffff);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.cta-block:hover {
+  border-color: var(--card-hover-border, rgba(0, 213, 255, 0.5));
+  background: rgba(0, 213, 255, 0.05);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.cta-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.cta-content p {
+  color: var(--text-muted, #a0a0b0);
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cta-large-icon {
+  width: 48px !important;
+  height: 48px !important;
+  margin-left: 20px;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease !important;
+}
+
+.cta-block:hover .cta-large-icon {
+  transform: scale(1.15) rotate(5deg);
+  /* Uses your existing icon filter but brightens it on hover */
+  filter: invert(72%) sepia(85%) saturate(3015%) hue-rotate(152deg) brightness(130%) contrast(110%) drop-shadow(0 0 12px rgba(0, 213, 255, 0.6)) !important;
+}
+
+@media (max-width: 600px) {
+  .cta-block {
+    flex-direction: column-reverse;
+    text-align: center;
+    padding: 24px;
+    gap: 16px;
+  }
+  .cta-large-icon {
+    margin-left: 0;
+  }
+}
