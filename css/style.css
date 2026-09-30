@@ -97,8 +97,8 @@ body {
   position: absolute;
   top: 40px;
   right: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
+  background: rgba(15, 0, 5, 0.85);
+  backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   padding: 10px 0;
@@ -212,8 +212,8 @@ body {
   gap: 2rem;
 }
 .project-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(12px);
+  background: rgba(15, 0, 5, 0.85);
+  backdrop-filter: none;
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 2rem;
@@ -253,8 +253,8 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(2, 0, 1, 0.85);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: none;
   z-index: 100;
   display: flex;
   justify-content: center;
@@ -352,14 +352,14 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--card-bg);
+  background: rgba(15, 0, 5, 0.85);
   border: 1px solid var(--accent-cyan);
   color: var(--accent-cyan);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  backdrop-filter: blur(8px);
+  backdrop-filter: none;
   transition: all 0.3s ease;
   text-decoration: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -396,7 +396,7 @@ body {
   display: flex;
   align-items: center;
   padding: 0.8rem 1.5rem;
-  background: var(--card-bg);
+  background:rgba(15, 0, 5, 0.85);
   border: 1px solid var(--accent-cyan);
   color: var(--text-main);
   border-radius: 8px;
@@ -404,7 +404,7 @@ body {
   font-weight: 600;
   text-decoration: none;
   transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
+  backdrop-filter: none;
 }
 .cv-action-btn svg {
   width: 20px;
@@ -444,13 +444,13 @@ body {
   position: absolute;
   bottom: 12px;
   right: 12px;
-  background: rgba(0, 0, 0, 0.6);
+  background:rgba(15, 0, 5, 0.85);
   border: 1px solid rgba(0, 213, 255, 0.4);
   border-radius: 6px;
   padding: 8px;
   cursor: pointer;
   color: var(--text-main);
-  backdrop-filter: blur(4px);
+  backdrop-filter: none;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -538,7 +538,7 @@ top-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--card-bg, rgba(15, 0, 5, 0.4));
+  background:rgba(15, 0, 5, 0.85);
   border: 1px solid var(--card-border, rgba(255, 30, 60, 0.2));
   border-radius: 12px;
   padding: 20px 24px; /* Taller padding */
@@ -549,8 +549,8 @@ top-nav {
   font-size: clamp(1rem, 4vw, 1.5rem); 
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -584,14 +584,14 @@ top-nav {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  background: var(--card-bg, rgba(15, 0, 5, 0.4));
+  background:rgba(15, 0, 5, 0.85);
   border: 1px solid var(--card-border, rgba(255, 30, 60, 0.2));
   border-radius: 12px;
   padding: 30px 40px;
   text-decoration: none;
   color: var(--text-main, #ffffff);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -624,7 +624,6 @@ top-nav {
 
 .cta-block:hover .cta-large-icon {
   transform: scale(1.15) rotate(5deg);
-  /* Uses your existing icon filter but brightens it on hover */
   filter: invert(72%) sepia(85%) saturate(3015%) hue-rotate(152deg) brightness(130%) contrast(110%) drop-shadow(0 0 12px rgba(0, 213, 255, 0.6)) !important;
 }
 

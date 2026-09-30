@@ -52,7 +52,11 @@ function closeModal() {
 
     if (modalOverlay) modalOverlay.classList.remove('active');
     document.body.style.overflow = '';
-    if (modalVideo) modalVideo.pause(); 
+    if (modalVideo){
+            modalVideo.pause();  
+            modalVideo.removeAttribute('src'); 
+            modalVideo.load();
+        }  
     
     if (document.fullscreenElement) {
         document.exitFullscreen();
