@@ -385,6 +385,14 @@ body {
   min-height: 100vh;
   padding: 2rem;
 }
+.cv-page {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  opacity: 0.96;
+}
 .cv-toolbar {
   width: 100%;
   max-width: 1000px;
@@ -419,7 +427,9 @@ body {
   width: 100%;
   max-width: 1000px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
 }
 #cv-image {
   max-width: 100%;
